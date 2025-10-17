@@ -1,5 +1,8 @@
+// lib/splash_screen.dart
+
 import 'package:flutter/material.dart';
 import 'login_page.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,13 +20,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 5),
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -86,6 +89,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   fontStyle: FontStyle.italic,
                 ),
               ),
+              const SizedBox(height: 40), // Sedikit menambah jarak
+              
+              // --- INI BAGIAN YANG DIUBAH ---
+              LoadingAnimationWidget.fourRotatingDots(
+                color: Colors.white, // Menggunakan satu warna
+                size: 80,
+              ),
+              // -----------------------------
+
             ],
           ),
         ),

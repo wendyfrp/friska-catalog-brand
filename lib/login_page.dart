@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home_page.dart';
+import 'home_page.dart'; // Tetap import ini karena MainScreen() ada di dalamnya
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -16,6 +16,14 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
 
   void _login() async {
+    // Validasi input kosong
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email dan password tidak boleh kosong!")),
+      );
+      return; // Hentikan fungsi jika ada yang kosong
+    }
+
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
@@ -24,15 +32,33 @@ class _LoginPageState extends State<LoginPage> {
     String? savedPassword = prefs.getString('password');
 
     if (email == savedEmail && password == savedPassword) {
+      // --- PERBAIKAN 1: Simpan status login ---
+      // Setelah login berhasil, set 'isLoggedIn' menjadi true.
+      // Ini penting agar SplashScreen tahu pengguna sudah login.
+      await prefs.setBool('isLoggedIn', true);
+
+      // Pastikan widget masih ada sebelum navigasi
+      if (!mounted) return;
+
+      // --- PERBAIKAN 2: Arahkan ke halaman yang benar ---
+      // Ganti tujuan dari HomePage() menjadi MainScreen()
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Email atau password salah!")),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    // Selalu dispose controller untuk mencegah memory leak
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,11 +102,18 @@ class _LoginPageState extends State<LoginPage> {
                     child: Image.asset(
                       'assets/logo.png',
                       fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 64,
+                        height: 64,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 18),
                   const Text(
                     "FRISKA BRAND CATALOG",
+                    textAlign: TextAlign.center, // Tambahkan ini agar rapi di layar kecil
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
